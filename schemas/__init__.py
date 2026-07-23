@@ -1,3 +1,4 @@
+from schemas.subtitles import SubtitleCue, SubtitleTrack
 from schemas.video_planning import (
     ProductInput,
     Storyboard,
@@ -9,5 +10,7 @@ __all__ = [
     "ProductInput",
     "Storyboard",
     "StoryboardScene",
+    "SubtitleCue",
+    "SubtitleTrack",
     "VideoScript",
 ]

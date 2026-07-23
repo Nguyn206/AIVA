@@ -2,6 +2,10 @@ from workflows.image_generation import (
     GenerateStoryboardImagesStep,
     build_image_generation_workflow,
 )
+from workflows.subtitle_generation import (
+    GenerateSubtitlesStep,
+    build_subtitle_generation_workflow,
+)
 from workflows.video_planning import (
     ProductAnalysisStep,
     ScriptGenerationStep,
@@ -17,11 +21,13 @@ from workflows.voice_generation import (
 __all__ = [
     "GenerateStoryboardImagesStep",
     "GenerateStoryboardVoiceStep",
+    "GenerateSubtitlesStep",
     "ProductAnalysisStep",
     "ScriptGenerationStep",
     "StoryboardGenerationStep",
     "VideoPlanningConfig",
     "build_image_generation_workflow",
+    "build_subtitle_generation_workflow",
     "build_video_planning_workflow",
     "build_voice_generation_workflow",
 ]
