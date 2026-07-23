@@ -27,13 +27,23 @@ from providers.models import (
 )
 from providers.openai_provider import OpenAIProvider
 from providers.registry import ProviderRegistry
+from providers.video import (
+    BaseVideoProvider,
+    GeneratedVideo,
+    MockVideoProvider,
+    VideoGenerationRequest,
+    VideoGenerationResponse,
+    VideoProviderRegistry,
+)
 
 __all__ = [
     "BaseImageProvider",
     "BaseLLMProvider",
+    "BaseVideoProvider",
     "BaseVoiceProvider",
     "GeneratedAudio",
     "GeneratedImage",
+    "GeneratedVideo",
     "ImageGenerationRequest",
     "ImageGenerationResponse",
     "ImageProviderRegistry",
@@ -43,12 +53,16 @@ __all__ = [
     "MessageRole",
     "MockImageProvider",
     "MockLLMProvider",
+    "MockVideoProvider",
     "MockVoiceProvider",
     "OpenAIImageProvider",
     "OpenAIProvider",
     "OpenAIVoiceProvider",
     "ProviderRegistry",
     "TokenUsage",
+    "VideoGenerationRequest",
+    "VideoGenerationResponse",
+    "VideoProviderRegistry",
     "VoiceGenerationRequest",
     "VoiceGenerationResponse",
     "VoiceProviderRegistry",

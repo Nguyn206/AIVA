@@ -9,6 +9,10 @@ from services.subtitle_generation import (
     render_srt,
     render_vtt,
 )
+from services.video_generation import (
+    SceneVideoAsset,
+    StoryboardVideoGenerator,
+)
 from services.voice_generation import (
     SceneNarrationAsset,
     StoryboardVoiceGenerator,
@@ -17,8 +21,10 @@ from services.voice_generation import (
 __all__ = [
     "SceneImageAsset",
     "SceneNarrationAsset",
+    "SceneVideoAsset",
     "StoryboardImageGenerator",
     "StoryboardSubtitleGenerator",
+    "StoryboardVideoGenerator",
     "StoryboardVoiceGenerator",
     "SubtitleAsset",
     "parse_json_object",
