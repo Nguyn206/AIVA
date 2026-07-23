@@ -1,3 +1,12 @@
+from providers.audio import (
+    BaseVoiceProvider,
+    GeneratedAudio,
+    MockVoiceProvider,
+    OpenAIVoiceProvider,
+    VoiceGenerationRequest,
+    VoiceGenerationResponse,
+    VoiceProviderRegistry,
+)
 from providers.base import BaseLLMProvider
 from providers.image import (
     BaseImageProvider,
@@ -22,6 +31,8 @@ from providers.registry import ProviderRegistry
 __all__ = [
     "BaseImageProvider",
     "BaseLLMProvider",
+    "BaseVoiceProvider",
+    "GeneratedAudio",
     "GeneratedImage",
     "ImageGenerationRequest",
     "ImageGenerationResponse",
@@ -32,8 +43,13 @@ __all__ = [
     "MessageRole",
     "MockImageProvider",
     "MockLLMProvider",
+    "MockVoiceProvider",
     "OpenAIImageProvider",
     "OpenAIProvider",
+    "OpenAIVoiceProvider",
     "ProviderRegistry",
     "TokenUsage",
+    "VoiceGenerationRequest",
+    "VoiceGenerationResponse",
+    "VoiceProviderRegistry",
 ]

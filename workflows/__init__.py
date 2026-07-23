@@ -9,13 +9,19 @@ from workflows.video_planning import (
     VideoPlanningConfig,
     build_video_planning_workflow,
 )
+from workflows.voice_generation import (
+    GenerateStoryboardVoiceStep,
+    build_voice_generation_workflow,
+)
 
 __all__ = [
     "GenerateStoryboardImagesStep",
+    "GenerateStoryboardVoiceStep",
     "ProductAnalysisStep",
     "ScriptGenerationStep",
     "StoryboardGenerationStep",
     "VideoPlanningConfig",
     "build_image_generation_workflow",
     "build_video_planning_workflow",
+    "build_voice_generation_workflow",
 ]
