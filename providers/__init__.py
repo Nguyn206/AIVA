@@ -1,9 +1,12 @@
 from providers.base import BaseLLMProvider
-from providers.exceptions import (
-    ProviderAuthenticationError,
-    ProviderConfigurationError,
-    ProviderNotFoundError,
-    ProviderRequestError,
+from providers.image import (
+    BaseImageProvider,
+    GeneratedImage,
+    ImageGenerationRequest,
+    ImageGenerationResponse,
+    ImageProviderRegistry,
+    MockImageProvider,
+    OpenAIImageProvider,
 )
 from providers.mock import MockLLMProvider
 from providers.models import (
@@ -17,17 +20,20 @@ from providers.openai_provider import OpenAIProvider
 from providers.registry import ProviderRegistry
 
 __all__ = [
+    "BaseImageProvider",
     "BaseLLMProvider",
+    "GeneratedImage",
+    "ImageGenerationRequest",
+    "ImageGenerationResponse",
+    "ImageProviderRegistry",
     "LLMRequest",
     "LLMResponse",
     "Message",
     "MessageRole",
+    "MockImageProvider",
     "MockLLMProvider",
+    "OpenAIImageProvider",
     "OpenAIProvider",
-    "ProviderAuthenticationError",
-    "ProviderConfigurationError",
-    "ProviderNotFoundError",
     "ProviderRegistry",
-    "ProviderRequestError",
     "TokenUsage",
 ]
