@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aiva"
-version = "0.1.0"
-description = "AI Video Advertiser Platform"
+version = "0.2.0"
+description = "Fully automated AI video generation tool"
 readme = "README.md"
 requires-python = ">=3.12"
 
@@ -20,6 +20,9 @@ dev = [
     "ruff>=0.9,<1.0",
 ]
 
+[project.scripts]
+aiva = "cli:main"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
@@ -33,17 +36,19 @@ select = ["E", "F", "I", "B", "UP"]
 ignore = ["UP046"]
 
 [tool.setuptools]
-py-modules = ["app"]
+py-modules = ["app", "cli"]
 
 [tool.setuptools.packages.find]
 include = [
     "config*",
     "core*",
     "engine*",
+    "pipelines*",
     "providers*",
     "workflows*",
     "services*",
     "storage*",
     "prompts*",
+    "render*",
     "schemas*",
 ]

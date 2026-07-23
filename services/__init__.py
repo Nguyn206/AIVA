@@ -3,6 +3,7 @@ from services.image_generation import (
     StoryboardImageGenerator,
 )
 from services.json_parser import parse_json_object
+from services.project_manifest import write_project_manifest
 from services.rendering import AIVideoRenderer
 from services.subtitle_generation import (
     StoryboardSubtitleGenerator,
@@ -32,4 +33,5 @@ __all__ = [
     "parse_json_object",
     "render_srt",
     "render_vtt",
+    "write_project_manifest",
 ]

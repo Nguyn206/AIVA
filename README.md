@@ -1,52 +1,45 @@
 # AIVA
 
-**AIVA — AI Video Advertiser Platform**
+AIVA is a tool that automatically creates an AI-generated video from product
+information.
 
-AIVA is being built as a workflow-driven platform for researching products,
-planning advertising content, generating media assets, and rendering complete
-affiliate marketing videos.
+Current end-to-end pipeline:
 
-## Current milestone
+```text
+Product input
+→ AI product analysis
+→ AI script
+→ AI storyboard
+→ AI images
+→ AI scene clips
+→ AI narration
+→ subtitles
+→ final MP4
+```
 
-Sprint 1 — Foundation
+## Offline end-to-end demo
 
-Included:
-
-- Environment-based settings
-- Central logging
-- Generic result type
-- Initial package structure
-- Automated tests
-
-## Setup
+Install the project:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
 pip install -e ".[dev]"
 ```
 
-Copy the environment template:
+Run the complete mock pipeline:
 
 ```powershell
-Copy-Item .env.example .env
+aiva --mock `
+  --name "Smart Lamp" `
+  --description "Adaptive desk lamp for home workers" `
+  --target-market "Home workers" `
+  --feature "Adaptive brightness" `
+  --feature "Energy efficient"
 ```
 
-Run the application:
+The output is written under:
 
-```powershell
-python app.py
+```text
+output/video_<generated-id>/final.mp4
 ```
 
-Run tests:
-
-```powershell
-pytest
-```
-
-Run code checks:
-
-```powershell
-ruff check .
-```
+Mock mode validates the complete workflow without using paid APIs.
