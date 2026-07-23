@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIVA</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #f4f5f7;
+    }
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    }
+    input, textarea, select, button {
+      width: 100%;
+      margin: 8px 0;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+    button {
+      cursor: pointer;
+      font-weight: 700;
+    }
+    progress {
+      width: 100%;
+      height: 26px;
+      margin-top: 16px;
+    }
+    pre {
+      background: #111;
+      color: #eee;
+      padding: 16px;
+      overflow: auto;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>AIVA</h1>
+    <p>Tự động tạo video quảng cáo bằng AI.</p>
+
+    <form id="video-form">
+      <input id="name" placeholder="Tên sản phẩm" required>
+      <textarea id="description" placeholder="Mô tả sản phẩm" required></textarea>
+      <input id="target_market" placeholder="Khách hàng mục tiêu" required>
+      <input id="product_url" placeholder="Đường dẫn sản phẩm">
+      <input id="features" placeholder="Tính năng, ngăn cách bằng dấu phẩy">
+      <select id="mode">
+        <option value="mock">Mock mode</option>
+        <option value="real">Real mode</option>
+      </select>
+      <button type="submit">Tạo video</button>
+    </form>
+
+    <progress id="progress" value="0" max="100"></progress>
+    <p id="message">Sẵn sàng.</p>
+    <pre id="result">Chưa có tác vụ.</pre>
+  </div>
+
+  <script>
+    const form = document.getElementById("video-form");
+    const progress = document.getElementById("progress");
+    const message = document.getElementById("message");
+    const result = document.getElementById("result");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      progress.value = 0;
+      message.textContent = "Đang tạo tác vụ...";
+      result.textContent = "";
+
+      const payload = {
+        name: document.getElementById("name").value,
+        description: document.getElementById("description").value,
+        target_market: document.getElementById("target_market").value,
+        product_url: document.getElementById("product_url").value || null,
+        features: document.getElementById("features").value
+          .split(",")
+          .map(value => value.trim())
+          .filter(Boolean),
+        mode: document.getElementById("mode").value
+      };
+
+      try {
+        const response = await fetch("/api/jobs/videos", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload)
+        });
+        const job = await response.json();
+
+        if (!response.ok) {
+          throw new Error(JSON.stringify(job));
+        }
+
+        result.textContent = JSON.stringify(job, null, 2);
+        pollJob(job.job_id);
+      } catch (error) {
+        message.textContent = "Không thể tạo tác vụ.";
+        result.textContent = String(error);
+      }
+    });
+
+    async function pollJob(jobId) {
+      const timer = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/jobs/${jobId}`);
+          const job = await response.json();
+
+          progress.value = job.progress;
+          message.textContent = job.message;
+          result.textContent = JSON.stringify(job, null, 2);
+
+          if (job.status === "completed" || job.status === "failed") {
+            clearInterval(timer);
+          }
+        } catch (error) {
+          clearInterval(timer);
+          message.textContent = "Mất kết nối với server.";
+          result.textContent = String(error);
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
