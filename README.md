@@ -1,18 +1,39 @@
-# AIVA Resume Support
+# AIVA Project Management CLI
 
-Sprint 13 completes real checkpoint resume behavior.
+Sprint 14 adds commands for inspecting and resuming saved video projects.
 
-A saved project now restores:
+Install the updated command entry points:
 
-- product input
-- AI analysis
-- video script
-- storyboard
-- generated images
-- scene videos
-- narration audio
-- subtitle assets
-- final render result
+```powershell
+pip install -e ".[dev]"
+```
 
-This allows AIVA to continue from the first unfinished stage without repeating
-completed and potentially paid AI operations.
+List projects:
+
+```powershell
+aiva-project list
+```
+
+Check one project:
+
+```powershell
+aiva-project status video_abc123
+```
+
+Resume with offline providers:
+
+```powershell
+aiva-project resume video_abc123 --mode mock
+```
+
+Resume with real providers:
+
+```powershell
+aiva-project resume video_abc123 --mode real
+```
+
+Use a different output directory:
+
+```powershell
+aiva-project --output-root D:\AIVA_Output list
+```
