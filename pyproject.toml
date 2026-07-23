@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aiva"
+version = "0.1.0"
+description = "AI Video Advertiser Platform"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "python-dotenv>=1.0,<2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0,<9.0",
+    "ruff>=0.9,<1.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["UP046"]
+
+[tool.setuptools]
+py-modules = ["app"]
+
+[tool.setuptools.packages.find]
+include = [
+    "config*",
+    "core*",
+    "engine*",
+    "providers*",
+    "workflows*",
+    "services*",
+    "storage*",
+    "prompts*",
+    "schemas*",
+]

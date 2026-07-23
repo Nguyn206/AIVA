@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Secrets
+.env
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+
+# Runtime data
+logs/
+output/*
+!output/.gitkeep
+
+# Generated media
+*.mp4
+*.wav
+*.mp3
