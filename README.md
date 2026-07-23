@@ -1,38 +1,18 @@
-# AIVA
+# AIVA Resume Support
 
-AIVA creates a complete AI-generated product video.
+Sprint 13 completes real checkpoint resume behavior.
 
-## Modes
+A saved project now restores:
 
-### Offline validation
+- product input
+- AI analysis
+- video script
+- storyboard
+- generated images
+- scene videos
+- narration audio
+- subtitle assets
+- final render result
 
-```powershell
-aiva --mode mock `
-  --name "Smart Lamp" `
-  --description "Adaptive desk lamp" `
-  --target-market "Home workers"
-```
-
-### Real video generation
-
-Real mode uses OpenAI for planning, images, and narration. FFmpeg turns
-the AI-generated images into animated scene clips and renders the final MP4.
-
-1. Install FFmpeg and ensure `ffmpeg --version` works.
-2. Copy `.env.example` to `.env`.
-3. Add your real `OPENAI_API_KEY`.
-4. Run:
-
-```powershell
-aiva --mode real `
-  --name "Smart Lamp" `
-  --description "Adaptive desk lamp for home workers" `
-  --target-market "Home workers" `
-  --feature "Adaptive brightness"
-```
-
-Output:
-
-```text
-output/video_<id>/final.mp4
-```
+This allows AIVA to continue from the first unfinished stage without repeating
+completed and potentially paid AI operations.

@@ -14,11 +14,8 @@ from providers.image.base import BaseImageProvider
 from providers.video.base import BaseVideoProvider
 from render.engine import RenderEngine
 from schemas.video_planning import ProductInput
-from services.context_persistence import save_context
-from storage.checkpoints import (
-    CheckpointStore,
-    PipelineStage,
-)
+from services.context_persistence import load_context, save_context
+from storage.checkpoints import CheckpointStore, PipelineStage
 from workflows.image_generation import build_image_generation_workflow
 from workflows.rendering import build_render_workflow
 from workflows.subtitle_generation import build_subtitle_generation_workflow
@@ -36,10 +33,11 @@ class ResumableVideoResult:
     project_directory: Path
     final_video_path: Path
     context: WorkflowContext
+    resumed: bool
 
 
 class ResumableVideoPipeline:
-    """Checkpointed AIVA pipeline that skips completed stages."""
+    """Checkpointed pipeline that reloads and resumes real project state."""
 
     def __init__(
         self,
@@ -62,10 +60,17 @@ class ResumableVideoPipeline:
 
     def run(
         self,
-        product: ProductInput,
+        product: ProductInput | None = None,
         *,
         project_id: str | None = None,
+        resume: bool = False,
     ) -> Result[ResumableVideoResult]:
+        if resume and not project_id:
+            return Result.fail(
+                "project_id is required when resume=True.",
+                error_type="ResumeConfigurationError",
+            )
+
         active_project_id = project_id or generate_id("video")
         project_directory = ensure_directory(
             self.config.output_root / active_project_id
@@ -73,15 +78,34 @@ class ResumableVideoPipeline:
         store = CheckpointStore(project_directory)
         context_path = project_directory / "context.json"
 
-        context = WorkflowContext(
-            project_id=active_project_id,
-            data={"product_input": product},
-            metadata={"resumable": True},
-        )
+        resumed = False
+        if resume:
+            checkpoint = store.load()
+            if checkpoint is None:
+                return Result.fail(
+                    f"No checkpoint found for project: {active_project_id}",
+                    error_type="CheckpointNotFoundError",
+                )
+            if not context_path.is_file():
+                return Result.fail(
+                    f"Context file not found for project: {active_project_id}",
+                    error_type="ContextNotFoundError",
+                )
+            context = load_context(context_path)
+            resumed = True
+        else:
+            if product is None:
+                return Result.fail(
+                    "ProductInput is required for a new project.",
+                    error_type="ProductInputRequiredError",
+                )
+            context = WorkflowContext(
+                project_id=active_project_id,
+                data={"product_input": product},
+                metadata={"resumable": True},
+            )
 
-        stages = self._build_stages(project_directory)
-
-        for stage, workflow in stages:
+        for stage, workflow in self._build_stages(project_directory):
             if store.reached(stage):
                 continue
 
@@ -109,6 +133,7 @@ class ResumableVideoPipeline:
                 project_directory=project_directory,
                 final_video_path=final_video.output_path,
                 context=context,
+                resumed=resumed,
             )
         )
 
