@@ -1,45 +1,38 @@
 # AIVA
 
-AIVA is a tool that automatically creates an AI-generated video from product
-information.
+AIVA creates a complete AI-generated product video.
 
-Current end-to-end pipeline:
+## Modes
 
-```text
-Product input
-→ AI product analysis
-→ AI script
-→ AI storyboard
-→ AI images
-→ AI scene clips
-→ AI narration
-→ subtitles
-→ final MP4
-```
-
-## Offline end-to-end demo
-
-Install the project:
+### Offline validation
 
 ```powershell
-pip install -e ".[dev]"
+aiva --mode mock `
+  --name "Smart Lamp" `
+  --description "Adaptive desk lamp" `
+  --target-market "Home workers"
 ```
 
-Run the complete mock pipeline:
+### Real video generation
+
+Real mode uses OpenAI for planning, images, and narration. FFmpeg turns
+the AI-generated images into animated scene clips and renders the final MP4.
+
+1. Install FFmpeg and ensure `ffmpeg --version` works.
+2. Copy `.env.example` to `.env`.
+3. Add your real `OPENAI_API_KEY`.
+4. Run:
 
 ```powershell
-aiva --mock `
+aiva --mode real `
   --name "Smart Lamp" `
   --description "Adaptive desk lamp for home workers" `
   --target-market "Home workers" `
-  --feature "Adaptive brightness" `
-  --feature "Energy efficient"
+  --feature "Adaptive brightness"
 ```
 
-The output is written under:
+Output:
 
 ```text
-output/video_<generated-id>/final.mp4
+output/video_<id>/final.mp4
 ```
-
-Mock mode validates the complete workflow without using paid APIs.

@@ -10,9 +10,10 @@ def test_cli_parses_required_product_fields() -> None:
             "Adaptive desk lamp",
             "--target-market",
             "Home workers",
-            "--mock",
+            "--mode",
+            "mock",
         ]
     )
 
     assert args.name == "Smart Lamp"
-    assert args.mock is True
+    assert args.mode == "mock"

@@ -1,3 +1,4 @@
+from services.context_persistence import load_context, save_context
 from services.image_generation import (
     SceneImageAsset,
     StoryboardImageGenerator,
@@ -30,8 +31,10 @@ __all__ = [
     "StoryboardVideoGenerator",
     "StoryboardVoiceGenerator",
     "SubtitleAsset",
+    "load_context",
     "parse_json_object",
     "render_srt",
     "render_vtt",
+    "save_context",
     "write_project_manifest",
 ]
