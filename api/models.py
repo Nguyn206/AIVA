@@ -51,3 +51,11 @@ class ProjectSummaryResponse(BaseModel):
     stage: str
     final_video_exists: bool
     project_directory: str
+
+
+class ProjectAssetResponse(BaseModel):
+    name: str
+    relative_path: str
+    size_bytes: int
+    asset_type: str
+    download_url: str

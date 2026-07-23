@@ -5,130 +5,323 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AIVA</title>
   <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, Arial, sans-serif;
+    }
     body {
-      font-family: Arial, sans-serif;
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 0 20px;
-      background: #f4f5f7;
+      margin: 0;
+      background: #f3f5f9;
+      color: #192033;
+    }
+    main {
+      max-width: 1050px;
+      margin: 32px auto;
+      padding: 0 18px 48px;
     }
     .card {
-      background: white;
-      border-radius: 14px;
+      background: #fff;
+      border-radius: 16px;
       padding: 24px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(26, 34, 55, .08);
+    }
+    h1, h2 {
+      margin-top: 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .full {
+      grid-column: 1 / -1;
     }
     input, textarea, select, button {
       width: 100%;
-      margin: 8px 0;
-      padding: 12px;
       box-sizing: border-box;
+      padding: 12px;
+      border: 1px solid #cbd2df;
+      border-radius: 9px;
+      font: inherit;
+    }
+    textarea {
+      min-height: 100px;
+      resize: vertical;
     }
     button {
       cursor: pointer;
+      border: 0;
+      color: white;
+      background: #315efb;
       font-weight: 700;
+    }
+    button.secondary {
+      background: #455169;
     }
     progress {
       width: 100%;
-      height: 26px;
-      margin-top: 16px;
+      height: 24px;
+      margin: 14px 0 5px;
+    }
+    .project {
+      border: 1px solid #dfe4ee;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .project-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .actions a, .actions button {
+      width: auto;
+      padding: 8px 12px;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+    .actions a {
+      background: #147a44;
+      color: white;
+      font-weight: 700;
     }
     pre {
-      background: #111;
-      color: #eee;
+      background: #111827;
+      color: #f3f4f6;
       padding: 16px;
+      border-radius: 10px;
       overflow: auto;
-      border-radius: 8px;
+    }
+    .asset-list {
+      margin-top: 12px;
+      padding-left: 20px;
+    }
+    .muted {
+      color: #697386;
+    }
+    @media (max-width: 700px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .project-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="card">
+<main>
+  <section class="card">
     <h1>AIVA</h1>
     <p>Tự động tạo video quảng cáo bằng AI.</p>
 
-    <form id="video-form">
+    <form id="video-form" class="grid">
       <input id="name" placeholder="Tên sản phẩm" required>
-      <textarea id="description" placeholder="Mô tả sản phẩm" required></textarea>
       <input id="target_market" placeholder="Khách hàng mục tiêu" required>
+      <textarea id="description" class="full" placeholder="Mô tả sản phẩm" required></textarea>
       <input id="product_url" placeholder="Đường dẫn sản phẩm">
       <input id="features" placeholder="Tính năng, ngăn cách bằng dấu phẩy">
-      <select id="mode">
+      <select id="mode" class="full">
         <option value="mock">Mock mode</option>
         <option value="real">Real mode</option>
       </select>
-      <button type="submit">Tạo video</button>
+      <button type="submit" class="full">Tạo video</button>
     </form>
 
     <progress id="progress" value="0" max="100"></progress>
     <p id="message">Sẵn sàng.</p>
     <pre id="result">Chưa có tác vụ.</pre>
-  </div>
+  </section>
 
-  <script>
-    const form = document.getElementById("video-form");
-    const progress = document.getElementById("progress");
-    const message = document.getElementById("message");
-    const result = document.getElementById("result");
+  <section class="card">
+    <div class="project-header">
+      <div>
+        <h2>Dự án</h2>
+        <span class="muted">Xem và tải các video đã tạo.</span>
+      </div>
+      <button id="refresh-projects" class="secondary">Làm mới</button>
+    </div>
+    <div id="projects">Đang tải...</div>
+  </section>
+</main>
 
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      progress.value = 0;
-      message.textContent = "Đang tạo tác vụ...";
-      result.textContent = "";
+<script>
+  const form = document.getElementById("video-form");
+  const progress = document.getElementById("progress");
+  const message = document.getElementById("message");
+  const result = document.getElementById("result");
+  const projectsElement = document.getElementById("projects");
 
-      const payload = {
-        name: document.getElementById("name").value,
-        description: document.getElementById("description").value,
-        target_market: document.getElementById("target_market").value,
-        product_url: document.getElementById("product_url").value || null,
-        features: document.getElementById("features").value
-          .split(",")
-          .map(value => value.trim())
-          .filter(Boolean),
-        mode: document.getElementById("mode").value
-      };
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    progress.value = 0;
+    message.textContent = "Đang tạo tác vụ...";
+    result.textContent = "";
 
+    const payload = {
+      name: document.getElementById("name").value,
+      description: document.getElementById("description").value,
+      target_market: document.getElementById("target_market").value,
+      product_url: document.getElementById("product_url").value || null,
+      features: document.getElementById("features").value
+        .split(",")
+        .map(value => value.trim())
+        .filter(Boolean),
+      mode: document.getElementById("mode").value
+    };
+
+    try {
+      const response = await fetch("/api/jobs/videos", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+      });
+      const job = await response.json();
+
+      if (!response.ok) {
+        throw new Error(JSON.stringify(job));
+      }
+
+      result.textContent = JSON.stringify(job, null, 2);
+      pollJob(job.job_id);
+    } catch (error) {
+      message.textContent = "Không thể tạo tác vụ.";
+      result.textContent = String(error);
+    }
+  });
+
+  document.getElementById("refresh-projects")
+    .addEventListener("click", loadProjects);
+
+  async function pollJob(jobId) {
+    const timer = setInterval(async () => {
       try {
-        const response = await fetch("/api/jobs/videos", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(payload)
-        });
+        const response = await fetch(`/api/jobs/${jobId}`);
         const job = await response.json();
 
-        if (!response.ok) {
-          throw new Error(JSON.stringify(job));
-        }
-
+        progress.value = job.progress;
+        message.textContent = job.message;
         result.textContent = JSON.stringify(job, null, 2);
-        pollJob(job.job_id);
+
+        if (job.status === "completed" || job.status === "failed") {
+          clearInterval(timer);
+          loadProjects();
+        }
       } catch (error) {
-        message.textContent = "Không thể tạo tác vụ.";
+        clearInterval(timer);
+        message.textContent = "Mất kết nối với server.";
         result.textContent = String(error);
       }
-    });
+    }, 1000);
+  }
 
-    async function pollJob(jobId) {
-      const timer = setInterval(async () => {
-        try {
-          const response = await fetch(`/api/jobs/${jobId}`);
-          const job = await response.json();
+  async function loadProjects() {
+    projectsElement.textContent = "Đang tải...";
 
-          progress.value = job.progress;
-          message.textContent = job.message;
-          result.textContent = JSON.stringify(job, null, 2);
+    try {
+      const response = await fetch("/api/projects");
+      const projects = await response.json();
 
-          if (job.status === "completed" || job.status === "failed") {
-            clearInterval(timer);
-          }
-        } catch (error) {
-          clearInterval(timer);
-          message.textContent = "Mất kết nối với server.";
-          result.textContent = String(error);
+      if (!projects.length) {
+        projectsElement.textContent = "Chưa có dự án.";
+        return;
+      }
+
+      projectsElement.innerHTML = "";
+
+      for (const project of projects) {
+        const card = document.createElement("div");
+        card.className = "project";
+
+        const header = document.createElement("div");
+        header.className = "project-header";
+
+        const info = document.createElement("div");
+        info.innerHTML = `
+          <strong>${escapeHtml(project.project_id)}</strong><br>
+          <span class="muted">
+            Giai đoạn: ${escapeHtml(project.stage)}
+          </span>
+        `;
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        if (project.final_video_exists) {
+          const download = document.createElement("a");
+          download.href = `/api/projects/${encodeURIComponent(project.project_id)}/video`;
+          download.textContent = "Tải final.mp4";
+          actions.appendChild(download);
         }
-      }, 1000);
+
+        const assetsButton = document.createElement("button");
+        assetsButton.className = "secondary";
+        assetsButton.textContent = "Xem asset";
+        assetsButton.addEventListener("click", () => {
+          toggleAssets(project.project_id, card);
+        });
+        actions.appendChild(assetsButton);
+
+        header.append(info, actions);
+        card.appendChild(header);
+        projectsElement.appendChild(card);
+      }
+    } catch (error) {
+      projectsElement.textContent = `Không tải được dự án: ${error}`;
     }
-  </script>
+  }
+
+  async function toggleAssets(projectId, card) {
+    const existing = card.querySelector(".asset-list");
+    if (existing) {
+      existing.remove();
+      return;
+    }
+
+    const response = await fetch(
+      `/api/projects/${encodeURIComponent(projectId)}/assets`
+    );
+    const assets = await response.json();
+    const list = document.createElement("ul");
+    list.className = "asset-list";
+
+    for (const asset of assets) {
+      const item = document.createElement("li");
+      const link = document.createElement("a");
+      link.href = asset.download_url;
+      link.textContent =
+        `${asset.relative_path} (${formatBytes(asset.size_bytes)})`;
+      item.appendChild(link);
+      list.appendChild(item);
+    }
+
+    card.appendChild(list);
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  loadProjects();
+</script>
 </body>
 </html>

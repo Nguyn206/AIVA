@@ -4,6 +4,11 @@ from services.image_generation import (
     StoryboardImageGenerator,
 )
 from services.json_parser import parse_json_object
+from services.project_assets import (
+    ProjectAsset,
+    list_project_assets,
+    resolve_project_asset,
+)
 from services.project_manifest import write_project_manifest
 from services.project_registry import ProjectSummary, list_projects
 from services.project_status import ProjectStatus, get_project_status
@@ -25,6 +30,7 @@ from services.voice_generation import (
 
 __all__ = [
     "AIVideoRenderer",
+    "ProjectAsset",
     "ProjectStatus",
     "ProjectSummary",
     "SceneImageAsset",
@@ -36,11 +42,13 @@ __all__ = [
     "StoryboardVoiceGenerator",
     "SubtitleAsset",
     "get_project_status",
+    "list_project_assets",
     "list_projects",
     "load_context",
     "parse_json_object",
     "render_srt",
     "render_vtt",
+    "resolve_project_asset",
     "save_context",
     "write_project_manifest",
 ]

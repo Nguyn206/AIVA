@@ -1,13 +1,19 @@
-# AIVA Background Jobs
+# AIVA Project Dashboard and Downloads
 
-Sprint 16 moves long-running video generation out of the HTTP request thread.
+Sprint 17 adds:
 
-The browser now:
+- a browser project dashboard,
+- project asset listing,
+- secure asset downloads,
+- direct final-video downloads.
 
-1. submits a video job,
-2. receives a job ID immediately,
-3. polls the job-status endpoint,
-4. displays progress and the final video path.
+New endpoints:
+
+```text
+GET /api/projects/{project_id}/assets
+GET /api/projects/{project_id}/assets/{asset_path}/download
+GET /api/projects/{project_id}/video
+```
 
 Run:
 
@@ -16,11 +22,8 @@ pip install -e ".[dev]"
 aiva-web
 ```
 
-Endpoints:
+Then open:
 
 ```text
-POST /api/jobs/videos
-GET  /api/jobs/{job_id}
+http://127.0.0.1:8000
 ```
-
-The original synchronous `POST /api/videos` endpoint remains available.

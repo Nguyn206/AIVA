@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 
 from api.dependencies import build_pipeline
 from api.job_dependencies import job_manager
@@ -11,11 +13,16 @@ from api.models import (
     CreateVideoRequest,
     CreateVideoResponse,
     JobStatusResponse,
+    ProjectAssetResponse,
     ProjectStatusResponse,
     ProjectSummaryResponse,
 )
 from jobs.models import JobRecord
 from schemas.video_planning import ProductInput
+from services.project_assets import (
+    list_project_assets,
+    resolve_project_asset,
+)
 from services.project_registry import list_projects
 from services.project_status import get_project_status
 
@@ -66,6 +73,89 @@ def project_status(
     )
 
 
+@router.get(
+    "/projects/{project_id}/assets",
+    response_model=list[ProjectAssetResponse],
+)
+def project_assets(
+    project_id: str,
+    output_root: str = "output",
+) -> list[ProjectAssetResponse]:
+    project_directory = Path(output_root) / project_id
+    if not project_directory.is_dir():
+        raise HTTPException(status_code=404, detail="Project not found.")
+
+    return [
+        ProjectAssetResponse(
+            name=asset.name,
+            relative_path=asset.relative_path,
+            size_bytes=asset.size_bytes,
+            asset_type=asset.asset_type,
+            download_url=(
+                f"/api/projects/{quote(project_id, safe='')}/assets/"
+                f"{quote(asset.relative_path, safe='/')}/download"
+            ),
+        )
+        for asset in list_project_assets(output_root, project_id)
+    ]
+
+
+@router.get(
+    "/projects/{project_id}/assets/{asset_path:path}/download",
+)
+def download_project_asset(
+    project_id: str,
+    asset_path: str,
+    output_root: str = "output",
+) -> FileResponse:
+    try:
+        path = resolve_project_asset(
+            output_root,
+            project_id,
+            asset_path,
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail="Project asset not found.",
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    return FileResponse(
+        path,
+        filename=path.name,
+        media_type=_media_type(path),
+    )
+
+
+@router.get("/projects/{project_id}/video")
+def download_final_video(
+    project_id: str,
+    output_root: str = "output",
+) -> FileResponse:
+    try:
+        path = resolve_project_asset(
+            output_root,
+            project_id,
+            "final.mp4",
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail="Final video not found.",
+        ) from exc
+
+    return FileResponse(
+        path,
+        filename=f"{project_id}.mp4",
+        media_type="video/mp4",
+    )
+
+
 @router.post(
     "/videos",
     response_model=CreateVideoResponse,
@@ -74,7 +164,6 @@ def create_video(
     request: CreateVideoRequest,
     output_root: str = "output",
 ) -> CreateVideoResponse:
-    """Synchronous endpoint retained for tests and direct API usage."""
     pipeline = _get_pipeline(request.mode, output_root)
 
     result = pipeline.run(
@@ -105,8 +194,6 @@ def create_video_job(
     request: CreateVideoRequest,
     output_root: str = "output",
 ) -> CreateJobResponse:
-    """Start video generation in a background worker."""
-
     def run(record: JobRecord):
         pipeline = _get_pipeline(request.mode, output_root)
         record.set_progress(5, "Pipeline configured")
@@ -212,3 +299,19 @@ def _to_product_input(
         product_url=request.product_url,
         features=tuple(request.features),
     )
+
+
+def _media_type(path: Path) -> str:
+    suffix = path.suffix.lower()
+    return {
+        ".mp4": "video/mp4",
+        ".mp3": "audio/mpeg",
+        ".wav": "audio/wav",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+        ".json": "application/json",
+        ".srt": "application/x-subrip",
+        ".vtt": "text/vtt",
+    }.get(suffix, "application/octet-stream")
