@@ -3,6 +3,7 @@ from services.image_generation import (
     StoryboardImageGenerator,
 )
 from services.json_parser import parse_json_object
+from services.rendering import AIVideoRenderer
 from services.subtitle_generation import (
     StoryboardSubtitleGenerator,
     SubtitleAsset,
@@ -19,6 +20,7 @@ from services.voice_generation import (
 )
 
 __all__ = [
+    "AIVideoRenderer",
     "SceneImageAsset",
     "SceneNarrationAsset",
     "SceneVideoAsset",
