@@ -4,6 +4,11 @@ from services.image_generation import (
     StoryboardImageGenerator,
 )
 from services.json_parser import parse_json_object
+from services.preflight import (
+    PreflightCheck,
+    PreflightReport,
+    run_real_mode_preflight,
+)
 from services.project_assets import (
     ProjectAsset,
     list_project_assets,
@@ -30,6 +35,8 @@ from services.voice_generation import (
 
 __all__ = [
     "AIVideoRenderer",
+    "PreflightCheck",
+    "PreflightReport",
     "ProjectAsset",
     "ProjectStatus",
     "ProjectSummary",
@@ -49,6 +56,7 @@ __all__ = [
     "render_srt",
     "render_vtt",
     "resolve_project_asset",
+    "run_real_mode_preflight",
     "save_context",
     "write_project_manifest",
 ]

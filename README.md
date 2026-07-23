@@ -1,18 +1,19 @@
-# AIVA Project Dashboard and Downloads
+# AIVA Real Mode Preflight
 
-Sprint 17 adds:
+Sprint 18 prevents real video jobs from starting with incomplete local
+configuration.
 
-- a browser project dashboard,
-- project asset listing,
-- secure asset downloads,
-- direct final-video downloads.
+The web interface can now check:
 
-New endpoints:
+- whether `OPENAI_API_KEY` exists,
+- whether FFmpeg is available,
+- whether the output directory is writable,
+- whether provider model names are configured.
+
+New endpoint:
 
 ```text
-GET /api/projects/{project_id}/assets
-GET /api/projects/{project_id}/assets/{asset_path}/download
-GET /api/projects/{project_id}/video
+GET /api/preflight/real
 ```
 
 Run:
@@ -22,7 +23,7 @@ pip install -e ".[dev]"
 aiva-web
 ```
 
-Then open:
+Open:
 
 ```text
 http://127.0.0.1:8000

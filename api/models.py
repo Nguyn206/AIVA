@@ -59,3 +59,14 @@ class ProjectAssetResponse(BaseModel):
     size_bytes: int
     asset_type: str
     download_url: str
+
+
+class PreflightCheckResponse(BaseModel):
+    name: str
+    passed: bool
+    message: str
+
+
+class PreflightReportResponse(BaseModel):
+    passed: bool
+    checks: list[PreflightCheckResponse]

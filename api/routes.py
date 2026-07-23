@@ -13,12 +13,16 @@ from api.models import (
     CreateVideoRequest,
     CreateVideoResponse,
     JobStatusResponse,
+    PreflightCheckResponse,
+    PreflightReportResponse,
     ProjectAssetResponse,
     ProjectStatusResponse,
     ProjectSummaryResponse,
 )
+from config.runtime import RuntimeConfig
 from jobs.models import JobRecord
 from schemas.video_planning import ProductInput
+from services.preflight import run_real_mode_preflight
 from services.project_assets import (
     list_project_assets,
     resolve_project_asset,
@@ -32,6 +36,27 @@ router = APIRouter()
 @router.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@router.get(
+    "/preflight/real",
+    response_model=PreflightReportResponse,
+)
+def real_mode_preflight() -> PreflightReportResponse:
+    report = run_real_mode_preflight(
+        RuntimeConfig.from_env()
+    )
+    return PreflightReportResponse(
+        passed=report.passed,
+        checks=[
+            PreflightCheckResponse(
+                name=check.name,
+                passed=check.passed,
+                message=check.message,
+            )
+            for check in report.checks
+        ],
+    )
 
 
 @router.get(
@@ -194,6 +219,21 @@ def create_video_job(
     request: CreateVideoRequest,
     output_root: str = "output",
 ) -> CreateJobResponse:
+    if request.mode == "real":
+        report = run_real_mode_preflight(
+            RuntimeConfig.from_env()
+        )
+        if not report.passed:
+            message = "; ".join(
+                check.message
+                for check in report.checks
+                if not check.passed
+            )
+            raise HTTPException(
+                status_code=400,
+                detail=f"Real mode preflight failed: {message}",
+            )
+
     def run(record: JobRecord):
         pipeline = _get_pipeline(request.mode, output_root)
         record.set_progress(5, "Pipeline configured")

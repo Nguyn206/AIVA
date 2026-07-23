@@ -6,13 +6,12 @@
   <title>AIVA</title>
   <style>
     :root {
-      color-scheme: light;
       font-family: Inter, Arial, sans-serif;
+      color: #192033;
     }
     body {
       margin: 0;
       background: #f3f5f9;
-      color: #192033;
     }
     main {
       max-width: 1050px;
@@ -25,9 +24,6 @@
       padding: 24px;
       margin-bottom: 20px;
       box-shadow: 0 10px 30px rgba(26, 34, 55, .08);
-    }
-    h1, h2 {
-      margin-top: 0;
     }
     .grid {
       display: grid;
@@ -47,7 +43,6 @@
     }
     textarea {
       min-height: 100px;
-      resize: vertical;
     }
     button {
       cursor: pointer;
@@ -59,6 +54,14 @@
     button.secondary {
       background: #455169;
     }
+    .preflight {
+      border: 1px solid #dfe4ee;
+      border-radius: 12px;
+      padding: 14px;
+      margin: 14px 0;
+    }
+    .check-pass { color: #147a44; }
+    .check-fail { color: #b42318; }
     progress {
       width: 100%;
       height: 24px;
@@ -99,17 +102,9 @@
       border-radius: 10px;
       overflow: auto;
     }
-    .asset-list {
-      margin-top: 12px;
-      padding-left: 20px;
-    }
-    .muted {
-      color: #697386;
-    }
+    .muted { color: #697386; }
     @media (max-width: 700px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
+      .grid { grid-template-columns: 1fr; }
       .project-header {
         align-items: flex-start;
         flex-direction: column;
@@ -122,6 +117,18 @@
   <section class="card">
     <h1>AIVA</h1>
     <p>Tự động tạo video quảng cáo bằng AI.</p>
+
+    <div class="preflight">
+      <div class="project-header">
+        <strong>Kiểm tra Real mode</strong>
+        <button id="check-real" class="secondary">
+          Kiểm tra cấu hình
+        </button>
+      </div>
+      <div id="preflight-result" class="muted">
+        Chưa kiểm tra.
+      </div>
+    </div>
 
     <form id="video-form" class="grid">
       <input id="name" placeholder="Tên sản phẩm" required>
@@ -159,9 +166,27 @@
   const message = document.getElementById("message");
   const result = document.getElementById("result");
   const projectsElement = document.getElementById("projects");
+  const preflightElement = document.getElementById("preflight-result");
+
+  document.getElementById("check-real")
+    .addEventListener("click", checkRealMode);
+
+  document.getElementById("refresh-projects")
+    .addEventListener("click", loadProjects);
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+
+    const mode = document.getElementById("mode").value;
+    if (mode === "real") {
+      const ready = await checkRealMode();
+      if (!ready) {
+        message.textContent =
+          "Real mode chưa sẵn sàng. Hãy sửa cấu hình trước.";
+        return;
+      }
+    }
+
     progress.value = 0;
     message.textContent = "Đang tạo tác vụ...";
     result.textContent = "";
@@ -175,7 +200,7 @@
         .split(",")
         .map(value => value.trim())
         .filter(Boolean),
-      mode: document.getElementById("mode").value
+      mode
     };
 
     try {
@@ -187,7 +212,7 @@
       const job = await response.json();
 
       if (!response.ok) {
-        throw new Error(JSON.stringify(job));
+        throw new Error(job.detail || JSON.stringify(job));
       }
 
       result.textContent = JSON.stringify(job, null, 2);
@@ -198,8 +223,26 @@
     }
   });
 
-  document.getElementById("refresh-projects")
-    .addEventListener("click", loadProjects);
+  async function checkRealMode() {
+    preflightElement.textContent = "Đang kiểm tra...";
+
+    try {
+      const response = await fetch("/api/preflight/real");
+      const report = await response.json();
+
+      preflightElement.innerHTML = report.checks.map(check => `
+        <div class="${check.passed ? "check-pass" : "check-fail"}">
+          ${check.passed ? "✓" : "✕"}
+          ${escapeHtml(check.message)}
+        </div>
+      `).join("");
+
+      return report.passed;
+    } catch (error) {
+      preflightElement.textContent = `Không thể kiểm tra: ${error}`;
+      return false;
+    }
+  }
 
   async function pollJob(jobId) {
     const timer = setInterval(async () => {
@@ -257,18 +300,11 @@
 
         if (project.final_video_exists) {
           const download = document.createElement("a");
-          download.href = `/api/projects/${encodeURIComponent(project.project_id)}/video`;
+          download.href =
+            `/api/projects/${encodeURIComponent(project.project_id)}/video`;
           download.textContent = "Tải final.mp4";
           actions.appendChild(download);
         }
-
-        const assetsButton = document.createElement("button");
-        assetsButton.className = "secondary";
-        assetsButton.textContent = "Xem asset";
-        assetsButton.addEventListener("click", () => {
-          toggleAssets(project.project_id, card);
-        });
-        actions.appendChild(assetsButton);
 
         header.append(info, actions);
         card.appendChild(header);
@@ -277,39 +313,6 @@
     } catch (error) {
       projectsElement.textContent = `Không tải được dự án: ${error}`;
     }
-  }
-
-  async function toggleAssets(projectId, card) {
-    const existing = card.querySelector(".asset-list");
-    if (existing) {
-      existing.remove();
-      return;
-    }
-
-    const response = await fetch(
-      `/api/projects/${encodeURIComponent(projectId)}/assets`
-    );
-    const assets = await response.json();
-    const list = document.createElement("ul");
-    list.className = "asset-list";
-
-    for (const asset of assets) {
-      const item = document.createElement("li");
-      const link = document.createElement("a");
-      link.href = asset.download_url;
-      link.textContent =
-        `${asset.relative_path} (${formatBytes(asset.size_bytes)})`;
-      item.appendChild(link);
-      list.appendChild(item);
-    }
-
-    card.appendChild(list);
-  }
-
-  function formatBytes(bytes) {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   }
 
   function escapeHtml(value) {
